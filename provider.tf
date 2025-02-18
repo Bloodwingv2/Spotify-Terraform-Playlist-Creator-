@@ -7,8 +7,13 @@ terraform {
   }
 }
 
+# Define the variable for API key
+variable "api_key" {
+  description = "Spotify API Key"
+  type        = string
+}
+
+# Update the provider to use the API key from the variable
 provider "spotify" {
-  client_id     = var.spotify_client_id
-  client_secret = var.spotify_client_secret
-  refresh_token = var.spotify_refresh_token
+  api_key = var.api_key
 }
