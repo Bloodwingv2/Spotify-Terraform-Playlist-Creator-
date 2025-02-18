@@ -17,36 +17,29 @@ jobs:
         run: |
           echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
           echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
+          echo "SPOTIFY_REFRESH_TOKEN=${{ secrets.SPOTIFY_REFRESH_TOKEN }}" >> .env
 
       - name: Verify .env file exists
         run: cat .env
 
-      - name: Start Spotify Auth Proxy
+      - name: Refresh API Token
+        id: refresh_token
         run: |
-          # Start the container in detached mode
-          container_id=$(docker run -d -p 27228:27228 --env-file "$GITHUB_WORKSPACE/.env" ghcr.io/conradludgate/spotify-auth-proxy)
-          echo "CONTAINER_ID=$container_id" >> $GITHUB_ENV
-          sleep 10
-
-          # Extract API key from container logs
-          api_key=$(docker logs "$container_id" | grep -oP 'APIKey: \K.*')
-
-          # Extract Auth URL from container logs
-          auth_url=$(docker logs "$container_id" | grep -oP 'Auth: \K.*')
-
-          # Output the authorization URL so it can be clicked manually
-          echo "Please open the following URL and authorize access: $auth_url"
+          # Use curl to get a new access token from the refresh token
+          response=$(curl -s -X POST "https://accounts.spotify.com/api/token" \
+            -H "Authorization: Basic $(echo -n "${{ secrets.SPOTIFY_CLIENT_ID }}:${{ secrets.SPOTIFY_CLIENT_SECRET }}" | base64)" \
+            -d "grant_type=refresh_token&refresh_token=${{ secrets.SPOTIFY_REFRESH_TOKEN }}")
           
-          if [ -z "$api_key" ]; then
-            echo "Error: API key could not be retrieved."
+          # Extract the new access token
+          access_token=$(echo "$response" | jq -r '.access_token')
+
+          if [ "$access_token" == "null" ]; then
+            echo "Error: Failed to refresh access token."
             exit 1
           fi
 
-          echo "SPOTIFY_API_KEY=$api_key" >> $GITHUB_ENV
-
-      - name: Stop Docker container
-        run: |
-          docker stop "$container_id"
+          echo "Access Token: $access_token"
+          echo "SPOTIFY_ACCESS_TOKEN=$access_token" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -59,4 +52,4 @@ jobs:
       - name: Apply Terraform Configuration
         run: terraform apply -auto-approve
         env:
-          TF_VAR_api_key: ${{ env.SPOTIFY_API_KEY }}
+          TF_VAR_api_key: ${{ env.SPOTIFY_ACCESS_TOKEN }}
