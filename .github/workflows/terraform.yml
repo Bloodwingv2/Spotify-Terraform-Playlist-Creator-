@@ -1,40 +1,47 @@
-name: Terraform CI/CD
+name: Deploy Spotify Terraform
 
 on:
   push:
     branches:
-      - main
+      - main  # Runs only on the main branch
 
 jobs:
-  terraform:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Docker to get the API key
-      id: get_api_key
-      run: |
-        # Run the Docker command to get the API key
-        api_key=$(docker run --rm -it -p 27228:27228 --env-file ./.env ghcr.io/conradludgate/spotify-auth-proxy | grep -oP 'APIKey: \K.*')
+      - name: Create .env file
+        run: |
+          echo "SPOTIFY_CLIENT_ID=${{ secrets.SPOTIFY_CLIENT_ID }}" >> .env
+          echo "SPOTIFY_CLIENT_SECRET=${{ secrets.SPOTIFY_CLIENT_SECRET }}" >> .env
 
-        # Check if the API key was retrieved successfully
-        if [ -z "$api_key" ]; then
-          echo "Error: API key could not be retrieved."
-          exit 1
-        fi
+      - name: Verify .env file exists
+        run: cat .env
 
-        # Set the API key as an environment variable in GitHub Actions
-        echo "SPOTIFY_API_KEY=$api_key" >> $GITHUB_ENV
+      - name: Run Docker Command to Get API Key
+        id: get_api_key
+        run: |
+          api_key=$(docker run --rm -it -p 27228:27228 --env-file "$GITHUB_WORKSPACE/.env" ghcr.io/conradludgate/spotify-auth-proxy | grep -oP 'APIKey: \K.*')
 
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.4.0
+          if [ -z "$api_key" ]; then
+            echo "Error: API key could not be retrieved."
+            exit 1
+          fi
 
-    - name: Initialize Terraform
-      run: terraform init
+          echo "SPOTIFY_API_KEY=$api_key" >> $GITHUB_ENV
 
-    - name: Apply Terraform Configuration
-      run: terraform apply -auto-approve -var "api_key=${{ env.SPOTIFY_API_KEY }}"
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: latest
+
+      - name: Initialize Terraform
+        run: terraform init
+
+      - name: Apply Terraform Configuration
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_api_key: ${{ env.SPOTIFY_API_KEY }}
