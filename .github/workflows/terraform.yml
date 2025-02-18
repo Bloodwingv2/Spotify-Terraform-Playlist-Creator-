@@ -26,7 +26,7 @@ jobs:
           # Start the container in detached mode
           container_id=$(docker run -d -p 27228:27228 --env-file "$GITHUB_WORKSPACE/.env" ghcr.io/conradludgate/spotify-auth-proxy)
           echo "CONTAINER_ID=$container_id" >> $GITHUB_ENV
-          sleep 5
+          sleep 10
 
           # Extract API key from container logs
           api_key=$(docker logs "$container_id" | grep -oP 'APIKey: \K.*')
