@@ -1,3 +1,3 @@
-variable "api_key"{
+variable api_key{
     type = string
 }
