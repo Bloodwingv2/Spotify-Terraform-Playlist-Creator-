@@ -1,1 +1,9 @@
-api_key = "cbY5ausqSlSlGl83ETTlUzWSlZ-NkCop-2NypRGnRF7DBzAtKpomFhtOYpXk6gJH"
+variable "spotify_client_id" {
+  description = "Spotify Client ID"
+  type        = string
+}
+
+variable "spotify_client_secret" {
+  description = "Spotify Client Secret"
+  type        = string
+}

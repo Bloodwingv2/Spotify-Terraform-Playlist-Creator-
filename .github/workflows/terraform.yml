@@ -1,0 +1,40 @@
+name: Terraform CI/CD
+
+on:
+  push:
+    branches:
+      - beta  # Trigger on the 'beta' branch
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker to get the API key
+      id: get_api_key
+      run: |
+        # Run the Docker command to get the API key
+        api_key=$(docker run --rm -it -p 27228:27228 --env-file ./.env ghcr.io/conradludgate/spotify-auth-proxy | grep -oP 'APIKey: \K.*')
+
+        # Check if the API key was retrieved successfully
+        if [ -z "$api_key" ]; then
+          echo "Error: API key could not be retrieved."
+          exit 1
+        fi
+
+        # Set the API key as an environment variable in GitHub Actions
+        echo "SPOTIFY_API_KEY=$api_key" >> $GITHUB_ENV
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.4.0
+
+    - name: Initialize Terraform
+      run: terraform init
+
+    - name: Apply Terraform Configuration
+      run: terraform apply -auto-approve -var "api_key=${{ env.SPOTIFY_API_KEY }}"
