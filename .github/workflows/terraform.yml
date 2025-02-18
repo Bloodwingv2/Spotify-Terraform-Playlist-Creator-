@@ -21,10 +21,23 @@ jobs:
       - name: Verify .env file exists
         run: cat .env
 
+      - name: Start Spotify Auth Proxy
+        run: |
+          container_id=$(docker run -d -p 27228:27228 --env-file "$GITHUB_WORKSPACE/.env" ghcr.io/conradludgate/spotify-auth-proxy)
+          echo "CONTAINER_ID=$container_id" >> $GITHUB_ENV
+          sleep 5
+
+          # Extract the authorization URL
+          auth_url=$(docker logs "$CONTAINER_ID" | grep -oP 'Auth: \K.*')
+
+          echo "Please open the following URL and authorize access: $auth_url"
+          echo "Waiting for manual authorization..."
+          sleep 60  # Wait for user to manually approve access
+
       - name: Run Docker Command to Get API Key
         id: get_api_key
         run: |
-          api_key=$(docker run --rm -p 27228:27228 --env-file "$GITHUB_WORKSPACE/.env" ghcr.io/conradludgate/spotify-auth-proxy | grep -oP 'APIKey: \K.*')
+          api_key=$(docker logs "$CONTAINER_ID" | grep -oP 'APIKey: \K.*')
 
           if [ -z "$api_key" ]; then
             echo "Error: API key could not be retrieved."
@@ -33,6 +46,8 @@ jobs:
 
           echo "SPOTIFY_API_KEY=$api_key" >> $GITHUB_ENV
 
+      - name: Stop and Remove Docker Container
+        run: docker stop "$CONTAINER_ID"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
