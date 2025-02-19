@@ -54,16 +54,6 @@ terraform plan
 terraform apply
 ```
 
-## File Structure
-```
-Spotify-Terraform-Playlist-Creator/
-│── Dockerfile           # Docker container setup
-│── main.tf              # Terraform configuration
-│── playlist.tf          # Playlist blueprint
-│── .env.example         # Environment variable template
-│── README.md            # Project documentation
-```
-
 ## Notes
 - Ensure your **Spotify Developer App** has the required permissions to create playlists.
 - The **OAuth2 token** may expire, requiring re-authentication.
