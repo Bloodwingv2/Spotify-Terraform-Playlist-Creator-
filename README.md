@@ -78,4 +78,4 @@ This project demonstrates **real-world DevOps practices** by integrating **Terra
 
 ---
 ### 🏆 Looking to Hire a DevOps Engineer?
-If you're looking for someone with **hands-on experience** in **DevOps automation, infrastructure management, and cloud-native development**, feel free to connect with me on **[LinkedIn](your-linkedin-profile)** or check out more projects on **[GitHub](your-github-profile)**! 🚀
+If you're looking for someone with **hands-on experience** in **DevOps automation, infrastructure management, and cloud-native development**, feel free to connect with me on **[LinkedIn](https://www.linkedin.com/in/mirangbhandari/)** or check out more projects on **[GitHub](https://github.com/Bloodwingv2)**! 🚀
