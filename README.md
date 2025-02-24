@@ -3,6 +3,11 @@
 ## Overview
 **Spotify-Terraform-Playlist-Creator** is a project that leverages Terraform's provider functionality to interact with the Spotify API. It automates playlist creation using Terraform and runs inside a Docker container. The project utilizes OAuth2 authentication to generate an API key, which Terraform then uses to create and apply playlists to a Spotify account.
 
+![Monitoring Dashboard](Screenshots/Output.png)
+![ECR Repository](Screenshots/Terraformapply.png)
+![AWS Docker Image](Screenshots/Terraformplan.png)
+![AWS Node Group](Screenshots/docker2.png)
+
 ## Features
 - Uses **Terraform Provider** to interact with Spotify API.
 - Automates playlist creation using **Terraform plan & apply**.
